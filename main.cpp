@@ -136,7 +136,8 @@ int checkPrefix(shared_ptr<BaseNode> node, const Key& key, uint8_t depth)
 		count++;
 	return count;
 }
-
+/// Tested
+/// searches for a key starting from node and returns key corresponding leaf
 shared_ptr<BaseNode> search(shared_ptr<BaseNode> node, const Key& key, uint8_t depth)
 {
 	if(node == nullptr)
@@ -166,6 +167,7 @@ int main()
 	shared_ptr<Node4> n6 = make_shared<Node4>();
 	shared_ptr<Node4> n7 = make_shared<Node4>();
 	shared_ptr<SVLeaf> leaf = make_shared<SVLeaf>();
+	shared_ptr<SVLeaf> leaf2 = make_shared<SVLeaf>();
 //set leaf
 	leaf->key[0] = 0x00;
 	leaf->key[1] = 0x01;
@@ -175,17 +177,40 @@ int main()
 	leaf->key[5] = 0x05;
 	leaf->key[6] = 0x06;
 	leaf->key[7] = 0x07;
+//set leaf2
+	leaf2->key[0] = 0x00;
+	leaf2->key[1] = 0x01;
+	leaf2->key[2] = 0x02;
+	leaf2->key[3] = 0x03;
+	leaf2->key[4] = 0x04;
+	leaf2->key[5] = 0x05;
+	leaf2->key[6] = 0x06;
+	leaf2->key[7] = 0x08;
+	
+	n0->prefix[0] = 0x00;
+	n0->prefix[1] = 0x01;
+	n0->prefix[2] = 0x02;
+	n0->prefix[3] = 0x03;
+	n0->prefix[4] = 0x04;
+	n0->prefix[5] = 0x05;
+	n0->prefix[6] = 0x06;
+	
+	n0->prefixLen = 7;
 //chain nodes
-	n0->keys[0] = 0x00;
-	n1->keys[0] = 0x01;
+	n0->keys[0] = 0x07;
+	n0->keys[1] = 0x08;
+	n0->child[0] = leaf;
+	n0->child[1] = leaf2;
+/*	n1->keys[0] = 0x01;
 	n2->index[0x02] = 0;
 	n4->keys[0] = 0x04;
 	n5->keys[0] = 0x05;
 	n6->keys[0] = 0x06;
 	n7->keys[0] = 0x07;
+*/	
 // 
-	n0->child[0] = n1;
-	n1->child[0] = n2;
+//	n0->child[0] = n1;
+//	n1->child[0] = n2;
 	n2->child[0] = n3;
 	n3->child[0x03] = n4;
 	n4->child[0] = n5;
@@ -194,9 +219,9 @@ int main()
 	n7->child[0] = leaf;
 
 	Key test_key = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
-	n0->prefixLen = 1;
-	n0->prefix[0] = 0x00;
-	cout << "checkPrefix (should be 1) = "<< checkPrefix(n0, test_key, 0) << endl;
+
+	cout << "Should be = " << leaf << " is "<< findChild(n0, test_key[7]) << endl;
+	cout << "search : " << search(n0, test_key, 0) << " should be = "<< leaf << endl;
 
 	return 0;
 }

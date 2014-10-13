@@ -216,13 +216,15 @@ void grow(shared_ptr<InnerNode>& node)
 {
 	if(node->type == Nodetype::Node4)
 	{
-		auto newNode = make_shared<Node16>();
 		auto tmp_node = static_pointer_cast<Node4>(node);
-		move(tmp_node->keys.begin(), tmp_node->keys.end(), newNode->keys.begin());
-		move(tmp_node->child.begin(), tmp_node->child.end(), newNode->child.begin());
+		auto newNode = make_shared<Node16>();
+		//copy header
 		newNode->numChildren = tmp_node->numChildren;
 		newNode->prefixLen = tmp_node->prefixLen;
 		copy(tmp_node->prefix, tmp_node->prefix + tmp_node->prefixLen, newNode->prefix);
+		//move content
+		move(tmp_node->keys.begin(), tmp_node->keys.end(), newNode->keys.begin());
+		move(tmp_node->child.begin(), tmp_node->child.end(), newNode->child.begin());
 		node = newNode;
 		return; 
 	}
@@ -230,10 +232,12 @@ void grow(shared_ptr<InnerNode>& node)
 	{
 		shared_ptr<BaseNode> newNode = make_shared<Node48>();
 		auto tmp_node = static_pointer_cast<Node16>(node);
-		auto count = 0;
-		for_each(tmp_node->keys.begin(), tmp_node->keys.end(), [&count, &newNode, &tmp_node](uint8_t key)mutable{ addChild(newNode, key, tmp_node->child[count]); count++; });
+		//copy header
 		newNode->prefixLen = tmp_node->prefixLen;
 		copy(tmp_node->prefix, tmp_node->prefix + tmp_node->prefixLen, newNode->prefix);
+		
+		auto count = 0;
+		for_each(tmp_node->keys.begin(), tmp_node->keys.end(), [&count, &newNode, &tmp_node](uint8_t key)mutable{ addChild(newNode, key, tmp_node->child[count]); count++; });
 		
 		node = static_pointer_cast<InnerNode>(newNode);
 		return;
@@ -242,8 +246,11 @@ void grow(shared_ptr<InnerNode>& node)
 	{
 		auto newNode = make_shared<Node256>();
 		auto tmp_node = static_pointer_cast<Node48>(node);
+		//copy header
 		newNode->prefixLen = tmp_node->prefixLen;
 		copy(tmp_node->prefix, tmp_node->prefix + tmp_node->prefixLen, newNode->prefix);
+		newNode->numChildren = tmp_node->numChildren;
+
 		for(unsigned int i = 0; i < tmp_node->index.size(); i++)
 		{
 			if(tmp_node->index[i] != EMPTY)
@@ -317,9 +324,9 @@ int main()
 	shared_ptr<SVLeaf> leaf5 = make_shared<SVLeaf>();
 
 	Key test_key = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
-	Key test_key2 = { 0x00, 0x06, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08 };
+	Key test_key2 = { 0x01, 0x06, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08 };
 	Key test_key3 = { 0x00, 0x02, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
-	Key test_key4 = { 0x00, 0x04, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+	Key test_key4 = { 0x01, 0x04, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
 	Key test_key5 = { 0x00, 0x03, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
 
 	
@@ -347,6 +354,11 @@ int main()
 	cout << "Insert leaf5 = " << leaf5 << endl;
 	insert(root, test_key5, tmp_leaf5, 0);
 
+auto tmp_root = static_pointer_cast<Node4>(root);
+cout<<"keys"<<endl;	
+	for_each(tmp_root->keys.begin(), tmp_root->keys.end(), [](uint8_t key){ cout << (int)key << endl; });
+cout<<"child"<<endl;
+	for_each(tmp_root->child.begin(), tmp_root->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl; }); 
 
 
 	cout << "Found leaf at " << search(root, test_key, 0) << endl;

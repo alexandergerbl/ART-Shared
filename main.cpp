@@ -4,6 +4,7 @@
 #include<array>
 #include<vector>
 #include<memory>
+#include<functional>
 
 using namespace std;
 
@@ -141,24 +142,18 @@ int checkPrefix(shared_ptr<BaseNode> node, const Key& key, uint8_t depth)
 /// searches for a key starting from node and returns key corresponding leaf
 shared_ptr<BaseNode> search(shared_ptr<BaseNode> node, const Key& key, uint8_t depth)
 {
-cout << "Search" << endl;
 	if(node == nullptr)
 		return nullptr;
-cout << "IsLeaf = " << (isLeaf(node)) << endl;
-cout << "Depth = " << (int)depth << endl;
 	if(isLeaf(node))
 	{
 		if(leafMatches(node, key, depth))
 			return node;
 		return nullptr;
 	}
-cout << (checkPrefix(node, key, depth) != node->prefixLen) << endl;
 	if(checkPrefix(node, key, depth) != node->prefixLen)
 		return nullptr;
-cout << "prefixLen = " << (int)node->prefixLen << endl;
 	depth += node->prefixLen;
 	auto next = findChild(node, key[depth]);
-cout << "next = " << next << endl;
 	return search(next, key, depth+1);
 } 
 /// Tested - take care as script tells parent musn't be a SVLeaf and parent musn't be full
@@ -176,10 +171,16 @@ void addChild(shared_ptr<BaseNode>& parent, uint8_t byte, shared_ptr<BaseNode>& 
 		auto tmp_parent = static_pointer_cast<Node4>(parent);
 		tmp_parent->numChildren++;
 		tmp_parent->keys[tmp_parent->numChildren-1] = byte;		
-		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren)-1);
+		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren));//-1
 		auto index_itr = find(tmp_parent->keys.begin(), tmp_parent->keys.end(), byte);
 		auto index = index_itr - tmp_parent->keys.begin();
-		move_backward(tmp_parent->child.begin() + index, tmp_parent->child.begin()+tmp_parent->numChildren-1, tmp_parent->child.begin() + index + 1);
+cout << "Index add4 = " << (int) index<< endl;
+cout << "Before move_backward" << endl;
+for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl;});
+		if(index < tmp_parent->numChildren)
+			move_backward(tmp_parent->child.begin() + index, tmp_parent->child.begin()+tmp_parent->numChildren-1, tmp_parent->child.begin() + tmp_parent->numChildren);
+		cout << "AFTER move_backward" << endl;
+for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl;});
 		tmp_parent->child[index] = child;
 for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl; }); 
 		return;
@@ -189,11 +190,15 @@ for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseN
 		auto tmp_parent = static_pointer_cast<Node16>(parent);
 		tmp_parent->numChildren++;
 		tmp_parent->keys[tmp_parent->numChildren-1] = byte;
-		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren)-1);
+		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren));
 		auto index_itr = find(tmp_parent->keys.begin(), tmp_parent->keys.end(), byte);
 		auto index = index_itr - tmp_parent->keys.begin();
-		move_backward(tmp_parent->child.begin() + index, tmp_parent->child.begin()+tmp_parent->numChildren-1, tmp_parent->child.begin() + index + 1);
+cout << "AddCHild16 index = " << index << endl;
+for_each(tmp_parent->child.begin(), tmp_parent->child.end()-1, [](shared_ptr<BaseNode>& n){ cout << n << endl; });
+		if(index < tmp_parent->numChildren)
+			move_backward(tmp_parent->child.begin() + index, tmp_parent->child.begin()+tmp_parent->numChildren-1, tmp_parent->child.begin() + tmp_parent->numChildren);
 		tmp_parent->child[index] = child;
+for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl; }); 
 		return;
 	}
 	if(parent->type == Nodetype::Node48)

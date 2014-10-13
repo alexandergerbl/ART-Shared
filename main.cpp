@@ -271,9 +271,9 @@ void insert(shared_ptr<BaseNode>& node, const Key& key, shared_ptr<BaseNode>& le
 		addChild(newNode, key[depth+p], leaf);
 		addChild(newNode, node->prefix[p], node);
 		newNode->prefixLen = p;
-		//memcpy
+		copy(node->prefix, node->prefix + node->prefixLen, newNode->prefix);
 		node->prefixLen = node->prefixLen-(p+1);
-		//memmove
+		copy(node->prefix, node->prefix + node->prefixLen, node->prefix + (p+1));
 		node = newNode;
 		return;
 	}

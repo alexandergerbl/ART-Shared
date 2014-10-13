@@ -12,7 +12,7 @@ typedef int Value;
 
 const uint8_t EMPTY(-1);
 
-enum class Nodetype : uint8_t { SVLeaf = 1, Node4 = 2, Node16 = 3, Node48 = 4, Node256 = 5 };
+enum class Nodetype : uint8_t { SVLeaf = 1, Node4 = 4, Node16 = 16, Node48 = 48, Node256 = 5 };
 
 struct BaseNode
 {
@@ -29,47 +29,47 @@ struct SVLeaf : BaseNode
 	SVLeaf() : BaseNode(Nodetype::SVLeaf) { this->value = nullptr; };
 };
 
-struct Node : BaseNode
+struct InnerNode : BaseNode
 {
 	int numChildren;
-	Node(Nodetype type) : BaseNode(type), numChildren(0) {};
+	InnerNode(Nodetype type) : BaseNode(type), numChildren(0) {};
 };
 
-struct Node4 : Node
+struct Node4 : InnerNode
 {
 	array<uint8_t, 4> keys;
 	array<shared_ptr<BaseNode>, 4> child;
-	Node4() : Node(Nodetype::Node4)
+	Node4() : InnerNode(Nodetype::Node4)
 	{
 		fill(child.begin(), child.end(), nullptr);
 	}
 };
 
-struct Node16 : Node
+struct Node16 : InnerNode
 {
 	array<uint8_t, 16> keys;
 	array<shared_ptr<BaseNode>, 16> child;
-	Node16() : Node(Nodetype::Node16) 
+	Node16() : InnerNode(Nodetype::Node16) 
 	{
 		fill(child.begin(), child.end(), nullptr);	
 	}
 };
 
-struct Node48 : Node
+struct Node48 : InnerNode
 {
 	array<uint8_t, 256> index;
 	array<shared_ptr<BaseNode>, 48> child;
-	Node48() : Node(Nodetype::Node48)
+	Node48() : InnerNode(Nodetype::Node48)
 	{
 		fill(child.begin(), child.end(), nullptr);
 		fill(index.begin(), index.end(), EMPTY);
 	}
 };
 
-struct Node256 : Node
+struct Node256 : InnerNode
 {
 	array<shared_ptr<BaseNode>, 256> child;
-	Node256() : Node(Nodetype::Node256)
+	Node256() : InnerNode(Nodetype::Node256)
 	{
 		fill(child.begin(), child.end(), nullptr);
 	}
@@ -172,7 +172,7 @@ void addChild(shared_ptr<BaseNode>& parent, uint8_t byte, shared_ptr<BaseNode>& 
 		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren));
 		auto index_itr = find(tmp_parent->keys.begin(), tmp_parent->keys.end(), byte);
 		auto index = index_itr - tmp_parent->keys.begin();
-		copy(tmp_parent->child.begin() + index, tmp_parent->child.begin() + tmp_parent->numChildren, tmp_parent->child.begin() + index + 1);
+		copy(tmp_parent->child.begin() + index, tmp_parent->child.begin() + tmp_parent->numChildren - 1, tmp_parent->child.begin() + index + 1);
 		tmp_parent->child[index] = child;
 
 		return;
@@ -185,7 +185,7 @@ void addChild(shared_ptr<BaseNode>& parent, uint8_t byte, shared_ptr<BaseNode>& 
 		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren));
 		auto index_itr = find(tmp_parent->keys.begin(), tmp_parent->keys.end(), byte);
 		auto index = index_itr - tmp_parent->keys.begin();
-		copy(tmp_parent->child.begin() + index, tmp_parent->child.begin() + tmp_parent->numChildren, tmp_parent->child.begin() + index + 1);
+		copy(tmp_parent->child.begin() + index, tmp_parent->child.begin() + tmp_parent->numChildren - 1, tmp_parent->child.begin() + index + 1);
 		tmp_parent->child[index] = child;
 		return;
 	}
@@ -201,6 +201,14 @@ void addChild(shared_ptr<BaseNode>& parent, uint8_t byte, shared_ptr<BaseNode>& 
 	tmp_parent->child[byte] = child;
 	tmp_parent->numChildren++;
 }
+/// Returns if a node is full 
+bool isFull(const shared_ptr<BaseNode>& node)
+{
+	auto tmp_node = static_pointer_cast<InnerNode>(node);
+	return (tmp_node->type == Nodetype::Node256) ? (tmp_node->numChildren == 256) : (tmp_node->numChildren == (int)tmp_node->type);
+}
+
+
 
 int main()
 {
@@ -267,15 +275,20 @@ int main()
 
 	Key test_key = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
 */
-	shared_ptr<BaseNode> root =  make_shared<Node256>(); //why no auto ?
+	shared_ptr<BaseNode> root =  make_shared<Node4>(); //why no auto ?
 	shared_ptr<BaseNode> leaf = make_shared<SVLeaf>();
-	cout << "Leaf = " << leaf << endl;
+	shared_ptr<BaseNode> leaf1 = make_shared<SVLeaf>();
 	shared_ptr<BaseNode> leaf2 = make_shared<SVLeaf>();
-	cout << "Leaf2 = " << leaf2 << endl;
+	shared_ptr<BaseNode> leaf3 = make_shared<SVLeaf>();
+	
 	addChild(root, 0x01, leaf);
-	addChild(root, 0x00, leaf2);
-	cout << "Found leaf at = " << findChild(root, 0x01) << endl;
-	cout << "Found leaf2 at = " << findChild(root, 0x00) << endl;
-
+	cout << "Added 1" << endl;	
+	addChild(root, 0x00, leaf1);
+	cout << "Added 2" << endl;
+	addChild(root, 0x02, leaf2);
+	cout << "Added 3" << endl;	
+	addChild(root, 0x03, leaf3);
+	cout << "Added 4" << endl;
+	cout << "find = " << findChild(root, 0x03) << "should be " << leaf3 << endl;
 	return 0;
 }

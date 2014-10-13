@@ -160,7 +160,10 @@ void addChild(shared_ptr<BaseNode>& parent, uint8_t byte, shared_ptr<BaseNode>& 
 {
 	//Case for total beginning root of ART = nullptr! ! !
 	if(parent == nullptr)
+	{
 		parent = child;
+		return;
+	}
 	if(parent->type == Nodetype::Node4)
 	{
 		auto tmp_parent = static_pointer_cast<Node4>(parent);

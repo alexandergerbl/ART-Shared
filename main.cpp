@@ -174,15 +174,9 @@ void addChild(shared_ptr<BaseNode>& parent, uint8_t byte, shared_ptr<BaseNode>& 
 		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren));//-1
 		auto index_itr = find(tmp_parent->keys.begin(), tmp_parent->keys.end(), byte);
 		auto index = index_itr - tmp_parent->keys.begin();
-cout << "Index add4 = " << (int) index<< endl;
-cout << "Before move_backward" << endl;
-for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl;});
 		if(index < tmp_parent->numChildren)
 			move_backward(tmp_parent->child.begin() + index, tmp_parent->child.begin()+tmp_parent->numChildren-1, tmp_parent->child.begin() + tmp_parent->numChildren);
-		cout << "AFTER move_backward" << endl;
-for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl;});
-		tmp_parent->child[index] = child;
-for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl; }); 
+		tmp_parent->child[index] = child; 
 		return;
 	}
 	if(parent->type == Nodetype::Node16)
@@ -193,12 +187,9 @@ for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseN
 		sort(tmp_parent->keys.begin(), tmp_parent->keys.begin() + (tmp_parent->numChildren));
 		auto index_itr = find(tmp_parent->keys.begin(), tmp_parent->keys.end(), byte);
 		auto index = index_itr - tmp_parent->keys.begin();
-cout << "AddCHild16 index = " << index << endl;
-for_each(tmp_parent->child.begin(), tmp_parent->child.end()-1, [](shared_ptr<BaseNode>& n){ cout << n << endl; });
 		if(index < tmp_parent->numChildren)
 			move_backward(tmp_parent->child.begin() + index, tmp_parent->child.begin()+tmp_parent->numChildren-1, tmp_parent->child.begin() + tmp_parent->numChildren);
 		tmp_parent->child[index] = child;
-for_each(tmp_parent->child.begin(), tmp_parent->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl; }); 
 		return;
 	}
 	if(parent->type == Nodetype::Node48)
@@ -357,12 +348,6 @@ int main()
 	insert(root, test_key5, tmp_leaf5, 0);
 
 
-cout << endl;
-auto tmp_root = static_pointer_cast<Node16>(root);
-cout<<"keys"<<endl;	
-	for_each(tmp_root->keys.begin(), tmp_root->keys.end(), [](uint8_t key){ cout << (int)key << endl; });
-cout<<"child"<<endl;
-	for_each(tmp_root->child.begin(), tmp_root->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl; }); 
 
 	cout << "Found leaf at " << search(root, test_key, 0) << endl;
 	cout << "Found leaf2 at " << search(root, test_key2, 0) << endl;
@@ -432,6 +417,13 @@ cout<<"child"<<endl;
 	n7->child[0] = leaf;
 
 	Key test_key = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+cout << endl;
+auto tmp_root = static_pointer_cast<Node16>(root);
+cout<<"keys"<<endl;	
+	for_each(tmp_root->keys.begin(), tmp_root->keys.end(), [](uint8_t key){ cout << (int)key << endl; });
+cout<<"child"<<endl;
+	for_each(tmp_root->child.begin(), tmp_root->child.end(), [](shared_ptr<BaseNode>& n){ cout << n << endl; }); 
+
 */
 	
 	
